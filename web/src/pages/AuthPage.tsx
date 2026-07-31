@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { User } from 'lucide-react';
 
 export default function AuthPage() {
   const { configured, signIn, signUp, user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/dashboard';
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,8 +20,8 @@ export default function AuthPage() {
         <User className="mx-auto mb-4 h-12 w-12 text-emerald-400" />
         <h1 className="mb-2 text-2xl font-bold">You're signed in</h1>
         <p className="mb-6 text-slate-400">{user.email}</p>
-        <Link to="/dashboard" className="btn-primary">
-          Go to Dashboard
+        <Link to={redirect} className="btn-primary">
+          Continue
         </Link>
       </div>
     );
@@ -57,6 +59,8 @@ export default function AuthPage() {
     } else if (mode === 'signup') {
       setSuccess('Account created! Check your email to confirm, then sign in.');
       setMode('signin');
+    } else {
+      window.location.href = redirect;
     }
   };
 

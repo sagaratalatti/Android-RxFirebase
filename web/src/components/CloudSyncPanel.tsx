@@ -12,6 +12,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { exportAllData, applyBackupToLocalStorage } from '../lib/backup';
 import { pullFromCloud, pushToCloud } from '../lib/cloud-sync';
 import { isAutoSyncEnabled, setAutoSyncEnabled } from '../lib/sync-preferences';
+import { usePlan } from '../contexts/PlanContext';
+import { shouldEnforcePlanLimits } from '../lib/plan-limits';
+import UpgradeBanner from './UpgradeBanner';
 
 export default function CloudSyncPanel() {
   const { user, configured } = useAuth();
@@ -20,6 +23,7 @@ export default function CloudSyncPanel() {
   );
   const [syncing, setSyncing] = useState<'push' | 'pull' | null>(null);
   const [autoSync, setAutoSync] = useState(isAutoSyncEnabled());
+  const { limits } = usePlan();
 
   if (!configured) {
     return (
@@ -97,6 +101,12 @@ export default function CloudSyncPanel() {
         </div>
       </div>
 
+      {shouldEnforcePlanLimits() && !limits.cloudSync && (
+        <div className="mb-4">
+          <UpgradeBanner feature="Cloud sync" />
+        </div>
+      )}
+
       <label className="mb-4 flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700 bg-slate-900/30 px-4 py-3">
         <input
           type="checkbox"
@@ -119,7 +129,7 @@ export default function CloudSyncPanel() {
         <button
           className="btn-primary text-sm"
           onClick={handlePush}
-          disabled={syncing !== null}
+          disabled={syncing !== null || (shouldEnforcePlanLimits() && !limits.cloudSync)}
         >
           <CloudUpload className="h-4 w-4" />
           {syncing === 'push' ? 'Uploading…' : 'Upload to Cloud'}
@@ -127,7 +137,7 @@ export default function CloudSyncPanel() {
         <button
           className="btn-secondary text-sm"
           onClick={handlePull}
-          disabled={syncing !== null}
+          disabled={syncing !== null || (shouldEnforcePlanLimits() && !limits.cloudSync)}
         >
           <CloudDownload className="h-4 w-4" />
           {syncing === 'pull' ? 'Downloading…' : 'Download from Cloud'}

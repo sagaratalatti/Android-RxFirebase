@@ -22,6 +22,9 @@ import { saveToHistory } from '../lib/history';
 import { exportToPdf, buildReportSections } from '../lib/export';
 import { getBranding } from '../lib/branding';
 import ShareReportButton from '../components/ShareReportButton';
+import UpgradeBanner, { PlanUsageBadge } from '../components/UpgradeBanner';
+import { usePlan } from '../contexts/PlanContext';
+import { incrementDailyGenerationCount } from '../lib/plan-limits';
 import type { ModuleId } from '../types';
 
 type Phase = 'form' | 'generating' | 'complete';
@@ -45,6 +48,7 @@ export default function GeneratorPage() {
   const [expandedLoops, setExpandedLoops] = useState<Set<number>>(new Set());
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('');
   const [exportingPdf, setExportingPdf] = useState(false);
+  const { plan, canGenerate, maxHistory, canUseLiveAI } = usePlan();
 
   if (!mod || !template) {
     return <Navigate to="/dashboard" replace />;
@@ -55,6 +59,11 @@ export default function GeneratorPage() {
   const handleGenerate = useCallback(async () => {
     if (!isProfileValid(profile)) return;
 
+    if (!canGenerate) {
+      setError('Daily generation limit reached. Upgrade to Pro for unlimited runs.');
+      return;
+    }
+
     setPhase('generating');
     setCurrentLoop(0);
     setIterations([]);
@@ -64,10 +73,15 @@ export default function GeneratorPage() {
     setExpandedLoops(new Set());
 
     try {
-      const result = await runLoopEngine(template, profile, (loopNum, name) => {
-        setCurrentLoop(loopNum);
-        setCurrentLoopName(name);
-      });
+      const result = await runLoopEngine(
+        template,
+        profile,
+        (loopNum, name) => {
+          setCurrentLoop(loopNum);
+          setCurrentLoopName(name);
+        },
+        { plan }
+      );
 
       const mappedIterations = result.iterations.map((it) => ({
         loopNumber: it.loopNumber,
@@ -78,22 +92,26 @@ export default function GeneratorPage() {
       setIterations(mappedIterations);
       setFinalOutput(result.finalOutput);
 
-      const saved = saveToHistory({
-        moduleId: mod.id,
-        moduleTitle: mod.title,
-        companyName: profile.companyName,
-        profile,
-        iterations: mappedIterations,
-        finalOutput: result.finalOutput,
-        usedLiveAI: result.usedLiveAI,
-      });
+      const saved = saveToHistory(
+        {
+          moduleId: mod.id,
+          moduleTitle: mod.title,
+          companyName: profile.companyName,
+          profile,
+          iterations: mappedIterations,
+          finalOutput: result.finalOutput,
+          usedLiveAI: result.usedLiveAI,
+        },
+        maxHistory
+      );
+      incrementDailyGenerationCount();
       setSavedId(saved.id);
       setPhase('complete');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
       setPhase('form');
     }
-  }, [profile, template, mod]);
+  }, [profile, template, mod, plan, canGenerate, maxHistory]);
 
   const fullMarkdown = iterations
     .map((it) => `# Loop ${it.loopNumber}: ${it.name}\n\n${it.response}`)
@@ -164,7 +182,16 @@ export default function GeneratorPage() {
         <p className="mt-2 text-sm text-slate-500">
           {loopCount} iterative AI loops → {mod.outputLabel}
         </p>
+        <div className="mt-3">
+          <PlanUsageBadge />
+        </div>
       </div>
+
+      {!canUseLiveAI && (
+        <div className="mb-6">
+          <UpgradeBanner feature="Live AI generation" />
+        </div>
+      )}
 
       {phase === 'form' && (
         <div className="glass-card p-6 sm:p-8">

@@ -1,5 +1,7 @@
 import type { LoopPromptTemplate, StartupProfile } from '../types';
 import { generateAIResponse, isAIConfigured } from './ai-service';
+import { canUseLiveAIForPlan } from './plan-limits';
+import type { PlanId } from '../types';
 
 export interface LoopEngineResult {
   outputs: string[];
@@ -331,11 +333,13 @@ _Demo mode: Connect your OpenAI API key for live AI-generated content tailored t
 export async function runLoopEngine(
   template: LoopPromptTemplate,
   profile: StartupProfile,
-  onLoopComplete?: (loopNumber: number, name: string, response: string) => void
+  onLoopComplete?: (loopNumber: number, name: string, response: string) => void,
+  options?: { plan?: PlanId }
 ): Promise<LoopEngineResult> {
   const outputs: string[] = [];
   const iterations: LoopEngineResult['iterations'] = [];
-  const useLiveAI = isAIConfigured();
+  const plan = options?.plan ?? 'free';
+  const useLiveAI = isAIConfigured() && canUseLiveAIForPlan(plan);
 
   for (let i = 0; i < template.loops.length; i++) {
     const loop = template.loops[i];

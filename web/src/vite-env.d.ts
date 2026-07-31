@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_STRIPE_PUBLISHABLE_KEY?: string;
   readonly VITE_STRIPE_PRO_PRICE_ID?: string;
   readonly VITE_STRIPE_TEAM_PRICE_ID?: string;
+  readonly VITE_ADMIN_EMAILS?: string;
 }
 
 interface ImportMeta {

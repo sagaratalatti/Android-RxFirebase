@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Share2, Check, Copy, Link as LinkIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlan } from '../contexts/PlanContext';
 import { createSharedReport } from '../lib/cloud-sync';
 import { Link } from 'react-router-dom';
+import { shouldEnforcePlanLimits } from '../lib/plan-limits';
 
 interface ShareReportButtonProps {
   moduleId: string;
@@ -20,11 +22,21 @@ export default function ShareReportButton({
   finalOutput,
 }: ShareReportButtonProps) {
   const { user, configured } = useAuth();
+  const { canShare } = usePlan();
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   if (!configured) return null;
+
+  if (shouldEnforcePlanLimits() && !canShare) {
+    return (
+      <Link to="/pricing" className="btn-secondary text-sm">
+        <Share2 className="h-4 w-4" />
+        Upgrade to Share
+      </Link>
+    );
+  }
 
   if (!user) {
     return (

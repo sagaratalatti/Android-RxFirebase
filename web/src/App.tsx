@@ -9,11 +9,14 @@ import HistoryDetailPage from './pages/HistoryDetailPage';
 import AuthPage from './pages/AuthPage';
 import SharePage from './pages/SharePage';
 import PricingPage from './pages/PricingPage';
+import AdminPage from './pages/AdminPage';
+import JoinTeamPage from './pages/JoinTeamPage';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/share/:id" element={<SharePage />} />
+      <Route path="/join/:token" element={<JoinTeamPage />} />
       <Route element={<Layout />}>
         <Route index element={<LandingPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
@@ -23,6 +26,7 @@ export default function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="auth" element={<AuthPage />} />
         <Route path="pricing" element={<PricingPage />} />
+        <Route path="admin" element={<AdminPage />} />
       </Route>
     </Routes>
   );

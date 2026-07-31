@@ -27,8 +27,8 @@
   status = 200
 
 [[redirects]]
-  from = "/api/stripe-webhook"
-  to = "/.netlify/functions/stripe-webhook"
+  from = "/api/admin-stats"
+  to = "/.netlify/functions/admin-stats"
   status = 200
 
 [[redirects]]

@@ -1,7 +1,7 @@
 import type { SavedGeneration } from '../types';
 
 const STORAGE_KEY = 'loopforge_history';
-const MAX_HISTORY = 50;
+const DEFAULT_MAX_HISTORY = 50;
 
 export function getHistory(): SavedGeneration[] {
   try {
@@ -18,7 +18,10 @@ export function getHistoryItem(id: string): SavedGeneration | undefined {
   return getHistory().find((item) => item.id === id);
 }
 
-export function saveToHistory(generation: Omit<SavedGeneration, 'id' | 'createdAt'>): SavedGeneration {
+export function saveToHistory(
+  generation: Omit<SavedGeneration, 'id' | 'createdAt'>,
+  maxItems = DEFAULT_MAX_HISTORY
+): SavedGeneration {
   const item: SavedGeneration = {
     ...generation,
     id: crypto.randomUUID(),
@@ -27,7 +30,7 @@ export function saveToHistory(generation: Omit<SavedGeneration, 'id' | 'createdA
 
   const history = getHistory();
   history.unshift(item);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, maxItems)));
   return item;
 }
 

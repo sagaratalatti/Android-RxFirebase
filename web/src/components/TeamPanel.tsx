@@ -18,10 +18,13 @@ import {
   pushTeamData,
   pullTeamData,
   leaveTeam,
+  inviteByEmail,
+  getTeamInvites,
 } from '../lib/teams';
 import { exportAllData, applyBackupToLocalStorage } from '../lib/backup';
 import { getUserSubscription, canUseTeams } from '../lib/billing';
 import type { Team } from '../types';
+import type { TeamInvite } from '../lib/teams';
 
 export default function TeamPanel() {
   const { user, configured } = useAuth();
@@ -32,6 +35,10 @@ export default function TeamPanel() {
   const [message, setMessage] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [selectedTeamId, setSelectedTeamId] = useState('');
+  const [pendingInvites, setPendingInvites] = useState<TeamInvite[]>([]);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const refresh = async () => {
     if (!user) return;
@@ -41,6 +48,11 @@ export default function TeamPanel() {
     ]);
     setTeams(userTeams);
     setTeamPlan(canUseTeams(sub?.plan ?? 'free'));
+    if (userTeams[0]) {
+      setSelectedTeamId(userTeams[0].id);
+      const invites = await getTeamInvites(userTeams[0].id);
+      setPendingInvites(invites);
+    }
   };
 
   useEffect(() => {
@@ -99,6 +111,23 @@ export default function TeamPanel() {
     } else {
       setMessage(result.message);
     }
+    setLoading(false);
+  };
+
+  const handleEmailInvite = async () => {
+    if (!inviteEmail.trim() || !selectedTeamId || !user) return;
+    setLoading(true);
+    const result = await inviteByEmail(selectedTeamId, inviteEmail.trim(), user.id);
+    if (result.joinUrl) {
+      await navigator.clipboard.writeText(result.joinUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+      setMessage(`Invite link copied! Send it to ${inviteEmail.trim()}`);
+    } else {
+      setMessage(result.error ?? 'Invite failed');
+    }
+    setInviteEmail('');
+    await refresh();
     setLoading(false);
   };
 
@@ -229,6 +258,54 @@ export default function TeamPanel() {
           </button>
         </div>
       </div>
+
+      {teamPlan && teams.length > 0 && (
+        <div className="mt-6 rounded-xl border border-slate-700 p-4">
+          <h3 className="mb-3 text-sm font-medium">Invite by Email</h3>
+          <select
+            className="input-field mb-3 text-sm"
+            value={selectedTeamId}
+            onChange={async (e) => {
+              setSelectedTeamId(e.target.value);
+              const invites = await getTeamInvites(e.target.value);
+              setPendingInvites(invites);
+            }}
+          >
+            {teams.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+          <div className="flex gap-2">
+            <input
+              className="input-field text-sm"
+              placeholder="colleague@startup.com"
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+            />
+            <button
+              className="btn-primary shrink-0 text-sm"
+              onClick={handleEmailInvite}
+              disabled={loading || !inviteEmail.trim()}
+            >
+              {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              Invite
+            </button>
+          </div>
+          {pendingInvites.length > 0 && (
+            <div className="mt-3 space-y-1">
+              <p className="text-xs text-slate-500">Pending invites:</p>
+              {pendingInvites.map((inv) => (
+                <p key={inv.id} className="text-xs text-slate-400">
+                  {inv.email} · expires {new Date(inv.expires_at).toLocaleDateString()}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {message && <p className="mt-4 text-sm text-slate-400">{message}</p>}
     </div>

@@ -142,3 +142,88 @@ export async function leaveTeam(userId: string, teamId: string): Promise<{ error
 
   return { error: error?.message };
 }
+
+export interface TeamInvite {
+  id: string;
+  team_id: string;
+  email: string;
+  token: string;
+  expires_at: string;
+  accepted_at: string | null;
+}
+
+export async function inviteByEmail(
+  teamId: string,
+  email: string,
+  invitedBy: string
+): Promise<{ invite?: TeamInvite; joinUrl?: string; error?: string }> {
+  if (!isSupabaseConfigured()) return { error: 'Not configured' };
+
+  const supabase = getSupabase()!;
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const { data, error } = await supabase
+    .from('team_invites')
+    .insert({
+      team_id: teamId,
+      email: normalizedEmail,
+      invited_by: invitedBy,
+    })
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+
+  const joinUrl = `${window.location.origin}/join/${data.token}`;
+  return { invite: data as TeamInvite, joinUrl };
+}
+
+export async function acceptInviteByToken(
+  userId: string,
+  userEmail: string,
+  token: string
+): Promise<{ team?: Team; error?: string }> {
+  if (!isSupabaseConfigured()) return { error: 'Not configured' };
+
+  const supabase = getSupabase()!;
+
+  const { data: invite, error } = await supabase
+    .from('team_invites')
+    .select('*, teams(*)')
+    .eq('token', token)
+    .is('accepted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle();
+
+  if (error || !invite) return { error: 'Invite not found or expired' };
+
+  if (invite.email.toLowerCase() !== userEmail.toLowerCase()) {
+    return { error: `This invite was sent to ${invite.email}. Sign in with that email.` };
+  }
+
+  await supabase.from('team_members').upsert(
+    { team_id: invite.team_id, user_id: userId, role: 'member' },
+    { onConflict: 'team_id,user_id' }
+  );
+
+  await supabase
+    .from('team_invites')
+    .update({ accepted_at: new Date().toISOString() })
+    .eq('id', invite.id);
+
+  return { team: invite.teams as Team };
+}
+
+export async function getTeamInvites(teamId: string): Promise<TeamInvite[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = getSupabase()!;
+  const { data } = await supabase
+    .from('team_invites')
+    .select('*')
+    .eq('team_id', teamId)
+    .is('accepted_at', null)
+    .order('created_at', { ascending: false });
+
+  return (data ?? []) as TeamInvite[];
+}
