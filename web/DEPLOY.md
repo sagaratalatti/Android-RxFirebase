@@ -30,10 +30,36 @@
 
 ## 3. Deploy to Vercel (recommended)
 
-1. Import your GitHub repository
-2. Set **Root Directory** to `web`
-3. Framework preset: **Vite**
-4. Add environment variables:
+### Option A — One-click (fastest)
+
+1. Open this link to import the repo:
+   **https://vercel.com/new/clone?repository-url=https://github.com/sagaratalatti/Android-RxFirebase&root-directory=web&project-name=loopforge**
+2. Sign in with GitHub if prompted
+3. Set **Root Directory** to `web` (should be pre-filled)
+4. Add environment variables (see table below)
+5. Click **Deploy**
+
+### Option B — Vercel CLI (local)
+
+```bash
+cd web
+npx vercel login
+npx vercel --prod
+```
+
+### Option C — GitHub Actions (CI/CD)
+
+Add these secrets in GitHub → Settings → Secrets → Actions:
+
+| Secret | How to get it |
+|--------|---------------|
+| `VERCEL_TOKEN` | https://vercel.com/account/tokens |
+| `VERCEL_ORG_ID` | Run `vercel link` locally, copy from `.vercel/project.json` |
+| `VERCEL_PROJECT_ID` | Same as above |
+
+Pushes to `master` that change `web/` will auto-deploy.
+
+### Environment variables (Vercel dashboard)
 
 | Variable | Required | Description |
 |----------|----------|-------------|
