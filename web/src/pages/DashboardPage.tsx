@@ -4,6 +4,7 @@ import { ModuleCard } from '../components/ui';
 import { modules } from '../lib/modules';
 import { isAIConfigured, checkServerAI, getAIMode, getAIStatusLabel } from '../lib/ai-service';
 import { Sparkles, Key } from 'lucide-react';
+import OnboardingBanner from '../components/OnboardingBanner';
 
 export default function DashboardPage() {
   const [aiEnabled, setAiEnabled] = useState(isAIConfigured());
@@ -26,6 +27,8 @@ export default function DashboardPage() {
           Choose a module to generate startup intelligence with loop-prompt AI.
         </p>
       </div>
+
+      <OnboardingBanner />
 
       {!aiEnabled && (
         <div className="mb-8 flex items-start gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">

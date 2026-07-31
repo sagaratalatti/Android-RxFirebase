@@ -3,6 +3,7 @@ import AISettingsPanel from '../components/AISettingsPanel';
 import BrandingEditor from '../components/BrandingEditor';
 import WorkspaceManager from '../components/WorkspaceManager';
 import DataBackupPanel from '../components/DataBackupPanel';
+import CloudSyncPanel from '../components/CloudSyncPanel';
 
 export default function SettingsPage() {
   return (
@@ -14,6 +15,7 @@ export default function SettingsPage() {
 
       <div className="space-y-8">
         <AISettingsPanel />
+        <CloudSyncPanel />
         <BrandingEditor />
         <WorkspaceManager />
         <PromptEditor />

@@ -17,6 +17,8 @@ A Progressive Web App for startups to generate business analysis, audits, GTM st
 - **Custom branding** — App name, tagline, accent color, and logo
 - **Data sync** — Export/import JSON backup to move data between devices
 - **Server AI proxy** — Secure OpenAI calls via Vercel serverless (no browser key)
+- **Accounts & cloud sync** — Optional Supabase auth with cross-device data sync
+- **Shareable reports** — Public read-only links for generated reports
 
 ## Quick Start
 
@@ -52,13 +54,37 @@ cd web && npm run build
 
 Both `vercel.json` and `netlify.toml` are included for SPA routing.
 
+### Server AI (recommended for production)
+
+1. Deploy to Vercel with root directory `web`
+2. Add environment variable: `OPENAI_API_KEY=sk-...`
+3. In the app, go to **Settings → AI Provider → Server Proxy**
+
+The API key stays on the server and is never exposed to browsers.
+
 ## AI Configuration
 
-1. Go to **Settings** in the app
-2. Add your [OpenAI API key](https://platform.openai.com/api-keys)
-3. Keys are stored locally in your browser only
+Three modes in **Settings → AI Provider**:
 
-Without an API key, the app runs in **demo mode** with sample outputs tailored to your startup profile.
+| Mode | Description |
+|------|-------------|
+| **Demo** | Sample outputs, no API key needed |
+| **Browser Key** | OpenAI key stored locally in your browser |
+| **Server Proxy** | Key on server via `OPENAI_API_KEY` env var (secure) |
+
+For local server proxy testing, create `.env` from `.env.example` with your key.
+
+### Supabase (optional — accounts & cloud sync)
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run `supabase/schema.sql` in the SQL Editor
+3. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `.env`
+4. Enable Email auth in Supabase Authentication settings
+
+Features enabled with Supabase:
+- Sign up / sign in
+- Cloud sync (upload/download all app data)
+- Shareable report links (`/share/:id`)
 
 ## Tech Stack
 
@@ -67,19 +93,23 @@ Without an API key, the app runs in **demo mode** with sample outputs tailored t
 - Tailwind CSS
 - vite-plugin-pwa (Workbox)
 - React Router
-- Lucide icons
+- React Router + Lucide icons + jsPDF + Supabase (optional)
 
 ## Project Structure
 
 ```
 web/
+├── api/               # Vercel serverless routes (chat, health)
+├── netlify/functions/ # Netlify serverless routes (chat, health)
+├── supabase/          # Database schema SQL
+├── server/            # Shared API handler logic
 ├── src/
 │   ├── components/    # UI components
-│   ├── lib/           # Loop engine, prompts, AI service
-│   ├── pages/         # Landing, Dashboard, Generator, Settings
+│   ├── lib/           # Loop engine, prompts, history, backup
+│   ├── pages/         # Landing, Dashboard, Generator, History, Settings
 │   └── types/         # TypeScript types
 ├── public/            # Static assets & PWA icons
-└── vite.config.ts     # PWA manifest config
+└── vite.config.ts     # PWA + dev API middleware
 ```
 
 ## How Loop Prompts Work

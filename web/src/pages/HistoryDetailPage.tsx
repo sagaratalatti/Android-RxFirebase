@@ -14,6 +14,7 @@ import { getModule } from '../lib/modules';
 import { getBranding } from '../lib/branding';
 import { MarkdownOutput } from '../components/ui';
 import { exportToPdf, buildReportSections } from '../lib/export';
+import ShareReportButton from '../components/ShareReportButton';
 import type { ModuleId } from '../types';
 
 export default function HistoryDetailPage() {
@@ -121,6 +122,13 @@ export default function HistoryDetailPage() {
           <FileDown className="h-4 w-4" />
           {exportingPdf ? 'Generating PDF…' : 'Download PDF'}
         </button>
+        <ShareReportButton
+          moduleId={item.moduleId}
+          moduleTitle={item.moduleTitle}
+          companyName={item.companyName}
+          iterations={item.iterations}
+          finalOutput={item.finalOutput}
+        />
         <Link
           to={`/generate/${item.moduleId}`}
           className="btn-primary text-sm"

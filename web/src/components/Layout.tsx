@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Zap, LayoutDashboard, Settings, Menu, X, History } from 'lucide-react';
 import { useState } from 'react';
 import { useBranding } from './BrandingProvider';
+import AuthButton from './AuthButton';
 
 export default function Layout() {
   const location = useLocation();
@@ -54,6 +55,7 @@ export default function Layout() {
           </nav>
 
           <div className="hidden items-center gap-3 md:flex">
+            <AuthButton />
             {isLanding && (
               <Link to="/dashboard" className="btn-primary text-sm">
                 Get Started

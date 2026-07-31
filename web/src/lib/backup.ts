@@ -39,6 +39,47 @@ export function downloadBackup(): void {
   URL.revokeObjectURL(url);
 }
 
+export function applyBackupToLocalStorage(
+  backup: AppBackup,
+  options: { replace?: boolean } = {}
+): void {
+  if (options.replace) {
+    localStorage.setItem('loopforge_history', JSON.stringify(backup.history ?? []));
+    localStorage.setItem('loopforge_workspaces', JSON.stringify(backup.workspaces ?? []));
+    localStorage.setItem('loopforge_branding', JSON.stringify(backup.branding));
+    localStorage.setItem('loopforge_custom_prompts', JSON.stringify(backup.customPrompts ?? {}));
+    localStorage.setItem('loopforge_ai_mode', backup.aiMode ?? 'demo');
+    return;
+  }
+
+  const existingHistory = getHistory();
+  const mergedHistory = [...(backup.history ?? []), ...existingHistory]
+    .filter((item, index, arr) => arr.findIndex((i) => i.id === item.id) === index)
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 50);
+  localStorage.setItem('loopforge_history', JSON.stringify(mergedHistory));
+
+  const existingWorkspaces = getWorkspaces();
+  const mergedWorkspaces = [...(backup.workspaces ?? []), ...existingWorkspaces]
+    .filter((item, index, arr) => arr.findIndex((i) => i.id === item.id) === index)
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+  localStorage.setItem('loopforge_workspaces', JSON.stringify(mergedWorkspaces));
+
+  if (backup.branding) {
+    localStorage.setItem('loopforge_branding', JSON.stringify(backup.branding));
+  }
+  if (backup.customPrompts) {
+    const existing = getCustomPromptOverrides();
+    localStorage.setItem(
+      'loopforge_custom_prompts',
+      JSON.stringify({ ...existing, ...backup.customPrompts })
+    );
+  }
+  if (backup.aiMode) {
+    localStorage.setItem('loopforge_ai_mode', backup.aiMode);
+  }
+}
+
 export function importAllData(
   backup: AppBackup,
   options: { replace?: boolean } = {}
@@ -47,40 +88,6 @@ export function importAllData(
     return { imported: false, message: 'Unsupported or invalid backup file.' };
   }
 
-  if (options.replace) {
-    localStorage.setItem('loopforge_history', JSON.stringify(backup.history ?? []));
-    localStorage.setItem('loopforge_workspaces', JSON.stringify(backup.workspaces ?? []));
-    localStorage.setItem('loopforge_branding', JSON.stringify(backup.branding));
-    localStorage.setItem('loopforge_custom_prompts', JSON.stringify(backup.customPrompts ?? {}));
-    localStorage.setItem('loopforge_ai_mode', backup.aiMode ?? 'demo');
-  } else {
-    const existingHistory = getHistory();
-    const mergedHistory = [...(backup.history ?? []), ...existingHistory]
-      .filter((item, index, arr) => arr.findIndex((i) => i.id === item.id) === index)
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(0, 50);
-    localStorage.setItem('loopforge_history', JSON.stringify(mergedHistory));
-
-    const existingWorkspaces = getWorkspaces();
-    const mergedWorkspaces = [...(backup.workspaces ?? []), ...existingWorkspaces]
-      .filter((item, index, arr) => arr.findIndex((i) => i.id === item.id) === index)
-      .sort((a, b) => b.updatedAt - a.updatedAt);
-    localStorage.setItem('loopforge_workspaces', JSON.stringify(mergedWorkspaces));
-
-    if (backup.branding) {
-      localStorage.setItem('loopforge_branding', JSON.stringify(backup.branding));
-    }
-    if (backup.customPrompts) {
-      const existing = getCustomPromptOverrides();
-      localStorage.setItem(
-        'loopforge_custom_prompts',
-        JSON.stringify({ ...existing, ...backup.customPrompts })
-      );
-    }
-    if (backup.aiMode) {
-      localStorage.setItem('loopforge_ai_mode', backup.aiMode);
-    }
-  }
-
+  applyBackupToLocalStorage(backup, options);
   return { imported: true, message: 'Data imported successfully. Refresh to apply all changes.' };
 }

@@ -6,10 +6,13 @@ import GeneratorPage from './pages/GeneratorPage';
 import SettingsPage from './pages/SettingsPage';
 import HistoryPage from './pages/HistoryPage';
 import HistoryDetailPage from './pages/HistoryDetailPage';
+import AuthPage from './pages/AuthPage';
+import SharePage from './pages/SharePage';
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/share/:id" element={<SharePage />} />
       <Route element={<Layout />}>
         <Route index element={<LandingPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
@@ -17,6 +20,7 @@ export default function App() {
         <Route path="history" element={<HistoryPage />} />
         <Route path="history/:id" element={<HistoryDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="auth" element={<AuthPage />} />
       </Route>
     </Routes>
   );

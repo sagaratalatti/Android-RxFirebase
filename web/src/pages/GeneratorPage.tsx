@@ -21,6 +21,7 @@ import { runLoopEngine } from '../lib/loop-engine';
 import { saveToHistory } from '../lib/history';
 import { exportToPdf, buildReportSections } from '../lib/export';
 import { getBranding } from '../lib/branding';
+import ShareReportButton from '../components/ShareReportButton';
 import type { ModuleId } from '../types';
 
 type Phase = 'form' | 'generating' | 'complete';
@@ -254,6 +255,13 @@ export default function GeneratorPage() {
               <FileDown className="h-4 w-4" />
               {exportingPdf ? 'Generating PDF…' : 'Download PDF'}
             </button>
+            <ShareReportButton
+              moduleId={mod.id}
+              moduleTitle={mod.title}
+              companyName={profile.companyName}
+              iterations={iterations}
+              finalOutput={finalOutput}
+            />
             <button
               className="btn-primary text-sm"
               onClick={() => {
