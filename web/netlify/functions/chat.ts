@@ -1,5 +1,5 @@
 import type { Handler, HandlerEvent } from '@netlify/functions';
-import { handleChatRequest, readJsonBody } from '../server/chat-handler';
+import { handleChatRequest, readJsonBody } from '../../server/chat-handler';
 
 export const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
@@ -11,7 +11,10 @@ export const handler: Handler = async (event: HandlerEvent) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
   }
 
-  const result = await handleChatRequest(body, process.env.OPENAI_API_KEY);
+  const result = await handleChatRequest(
+    body,
+    process.env as Record<string, string | undefined>
+  );
 
   if ('error' in result) {
     return { statusCode: result.status, body: JSON.stringify({ error: result.error }) };

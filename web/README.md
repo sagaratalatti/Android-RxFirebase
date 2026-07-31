@@ -16,7 +16,7 @@ A Progressive Web App for startups to generate business analysis, audits, GTM st
 - **Startup workspaces** — Save and reuse company profiles across modules
 - **Custom branding** — App name, tagline, accent color, and logo
 - **Data sync** — Export/import JSON backup to move data between devices
-- **Server AI proxy** — Secure OpenAI calls via Vercel serverless (no browser key)
+- **Server AI proxy** — Secure OpenAI or OpenRouter calls via Vercel serverless (no browser key)
 - **Accounts & cloud sync** — Optional Supabase auth with cross-device data sync
 - **Shareable reports** — Public read-only links for generated reports
 
@@ -57,7 +57,9 @@ Both `vercel.json` and `netlify.toml` are included for SPA routing.
 ### Server AI (recommended for production)
 
 1. Deploy to Vercel with root directory `web`
-2. Add environment variable: `OPENAI_API_KEY=sk-...`
+2. Add environment variables:
+   - **OpenAI:** `OPENAI_API_KEY=sk-...`
+   - **OpenRouter:** `OPENROUTER_API_KEY=sk-or-...` (optional: `AI_PROVIDER=openrouter`, `AI_MODEL=openai/gpt-4o-mini`)
 3. In the app, go to **Settings → AI Provider → Server Proxy**
 
 The API key stays on the server and is never exposed to browsers.
@@ -69,8 +71,10 @@ Three modes in **Settings → AI Provider**:
 | Mode | Description |
 |------|-------------|
 | **Demo** | Sample outputs, no API key needed |
-| **Browser Key** | OpenAI key stored locally in your browser |
-| **Server Proxy** | Key on server via `OPENAI_API_KEY` env var (secure) |
+| **Browser Key** | OpenAI or OpenRouter key stored locally in your browser |
+| **Server Proxy** | Key on server via `OPENAI_API_KEY` or `OPENROUTER_API_KEY` env var (secure) |
+
+**Providers:** OpenAI (direct) or OpenRouter (multi-model gateway). Choose provider and model in Settings.
 
 For local server proxy testing, create `.env` from `.env.example` with your key.
 

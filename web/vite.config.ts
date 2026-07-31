@@ -1,7 +1,7 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { handleChatRequest, readJsonBody } from './server/chat-handler';
+import { getServerHealth, handleChatRequest, readJsonBody } from './server/chat-handler';
 
 function devApiPlugin(env: Record<string, string>): Plugin {
   return {
@@ -9,12 +9,7 @@ function devApiPlugin(env: Record<string, string>): Plugin {
     configureServer(server) {
       server.middlewares.use('/api/health', (_req, res) => {
         res.setHeader('Content-Type', 'application/json');
-        res.end(
-          JSON.stringify({
-            configured: Boolean(env.OPENAI_API_KEY),
-            mode: 'server',
-          })
-        );
+        res.end(JSON.stringify(getServerHealth(env)));
       });
 
       server.middlewares.use('/api/chat', (req, res) => {
@@ -36,7 +31,7 @@ function devApiPlugin(env: Record<string, string>): Plugin {
             return;
           }
 
-          const result = await handleChatRequest(parsed, env.OPENAI_API_KEY);
+          const result = await handleChatRequest(parsed, env);
           res.setHeader('Content-Type', 'application/json');
           if ('error' in result) {
             res.statusCode = result.status;

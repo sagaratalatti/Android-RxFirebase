@@ -1,8 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getServerHealth } from '../server/chat-handler';
 
 export default function handler(_req: VercelRequest, res: VercelResponse) {
-  return res.status(200).json({
-    configured: Boolean(process.env.OPENAI_API_KEY),
-    mode: 'server',
-  });
+  return res.status(200).json(getServerHealth(process.env as Record<string, string | undefined>));
 }
