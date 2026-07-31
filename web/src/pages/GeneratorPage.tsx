@@ -13,12 +13,14 @@ import {
   History,
 } from 'lucide-react';
 import StartupForm, { emptyProfile, isProfileValid } from '../components/StartupForm';
+import { WorkspaceSelector } from '../components/WorkspaceManager';
 import { LoopProgress, MarkdownOutput } from '../components/ui';
 import { getModule } from '../lib/modules';
 import { getTemplateForModule } from '../lib/prompts';
 import { runLoopEngine } from '../lib/loop-engine';
 import { saveToHistory } from '../lib/history';
 import { exportToPdf, buildReportSections } from '../lib/export';
+import { getBranding } from '../lib/branding';
 import type { ModuleId } from '../types';
 
 type Phase = 'form' | 'generating' | 'complete';
@@ -40,6 +42,8 @@ export default function GeneratorPage() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [expandedLoops, setExpandedLoops] = useState<Set<number>>(new Set());
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('');
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   if (!mod || !template) {
     return <Navigate to="/dashboard" replace />;
@@ -110,13 +114,23 @@ export default function GeneratorPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadPdf = () => {
-    exportToPdf(
-      `${mod.title} — ${profile.companyName}`,
-      `Generated ${new Date().toLocaleDateString()}`,
-      buildReportSections(iterations, finalOutput, mod.outputLabel),
-      `${profile.companyName || 'startup'}-${mod.id}-report.pdf`
-    );
+  const handleDownloadPdf = async () => {
+    setExportingPdf(true);
+    try {
+      const branding = getBranding();
+      await exportToPdf(
+        `${mod.title} — ${profile.companyName}`,
+        `Generated ${new Date().toLocaleDateString()}`,
+        buildReportSections(iterations, finalOutput, mod.outputLabel),
+        `${profile.companyName || 'startup'}-${mod.id}-report.pdf`,
+        {
+          appName: branding.appName,
+          tagline: branding.tagline,
+        }
+      );
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   const toggleLoop = (num: number) => {
@@ -154,6 +168,13 @@ export default function GeneratorPage() {
       {phase === 'form' && (
         <div className="glass-card p-6 sm:p-8">
           <h2 className="mb-6 text-xl font-semibold">Your Startup Profile</h2>
+          <WorkspaceSelector
+            value={selectedWorkspaceId}
+            onSelect={(loadedProfile, workspaceId) => {
+              setProfile(loadedProfile);
+              setSelectedWorkspaceId(workspaceId);
+            }}
+          />
           <StartupForm profile={profile} onChange={setProfile} />
           {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
           <button
@@ -225,9 +246,13 @@ export default function GeneratorPage() {
               <Download className="h-4 w-4" />
               Download .md
             </button>
-            <button className="btn-secondary text-sm" onClick={handleDownloadPdf}>
+            <button
+              className="btn-secondary text-sm"
+              onClick={handleDownloadPdf}
+              disabled={exportingPdf}
+            >
               <FileDown className="h-4 w-4" />
-              Download PDF
+              {exportingPdf ? 'Generating PDF…' : 'Download PDF'}
             </button>
             <button
               className="btn-primary text-sm"

@@ -67,3 +67,18 @@ export interface SavedGeneration {
 }
 
 export type CustomPromptOverrides = Partial<Record<ModuleId, SerializableLoopConfig[]>>;
+
+export interface BrandingConfig {
+  appName: string;
+  tagline: string;
+  accentColor: string;
+  logoUrl: string;
+}
+
+export interface SavedWorkspace {
+  id: string;
+  name: string;
+  profile: StartupProfile;
+  createdAt: number;
+  updatedAt: number;
+}

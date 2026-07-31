@@ -13,12 +13,17 @@ A Progressive Web App for startups to generate business analysis, audits, GTM st
 - **Export** — Copy, download as Markdown, or export as PDF
 - **History** — Auto-saved generations stored locally (up to 50)
 - **Custom prompts** — Edit loop prompts per module in Settings
+- **Startup workspaces** — Save and reuse company profiles across modules
+- **Custom branding** — App name, tagline, accent color, and logo
+- **Data sync** — Export/import JSON backup to move data between devices
+- **Server AI proxy** — Secure OpenAI calls via Vercel serverless (no browser key)
 
 ## Quick Start
 
 ```bash
 cd web
 npm install
+cp .env.example .env   # optional — for server proxy in local dev
 npm run dev
 ```
 

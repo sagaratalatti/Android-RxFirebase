@@ -1,8 +1,12 @@
-import { jsPDF } from 'jspdf';
-
 interface ExportSection {
   title: string;
   content: string;
+}
+
+export interface PdfBranding {
+  appName?: string;
+  tagline?: string;
+  accentColor?: string;
 }
 
 function stripMarkdown(text: string): string {
@@ -19,7 +23,7 @@ function stripMarkdown(text: string): string {
 }
 
 function addWrappedText(
-  doc: jsPDF,
+  doc: import('jspdf').jsPDF,
   text: string,
   x: number,
   y: number,
@@ -42,19 +46,30 @@ function addWrappedText(
   return currentY;
 }
 
-export function exportToPdf(
+export async function exportToPdf(
   title: string,
   subtitle: string,
   sections: ExportSection[],
-  filename: string
-): void {
+  filename: string,
+  branding?: PdfBranding
+): Promise<void> {
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const margin = 20;
   const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
   let y = 20;
 
+  if (branding?.appName) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(branding.appName, margin, y);
+    y += 6;
+  }
+
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
+  doc.setTextColor(0);
   doc.text(title, margin, y);
   y += 10;
 
@@ -62,7 +77,13 @@ export function exportToPdf(
   doc.setFontSize(10);
   doc.setTextColor(100);
   doc.text(subtitle, margin, y);
-  y += 12;
+  y += branding?.tagline ? 6 : 12;
+
+  if (branding?.tagline) {
+    doc.text(branding.tagline, margin, y);
+    y += 12;
+  }
+
   doc.setTextColor(0);
 
   for (const section of sections) {

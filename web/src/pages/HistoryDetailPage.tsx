@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { getHistoryItem } from '../lib/history';
 import { getModule } from '../lib/modules';
+import { getBranding } from '../lib/branding';
 import { MarkdownOutput } from '../components/ui';
 import { exportToPdf, buildReportSections } from '../lib/export';
 import type { ModuleId } from '../types';
@@ -20,6 +21,7 @@ export default function HistoryDetailPage() {
   const item = id ? getHistoryItem(id) : undefined;
   const [copied, setCopied] = useState(false);
   const [expandedLoops, setExpandedLoops] = useState<Set<number>>(new Set());
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   if (!item) {
     return <Navigate to="/history" replace />;
@@ -47,17 +49,27 @@ export default function HistoryDetailPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadPdf = () => {
-    exportToPdf(
-      `${item.moduleTitle} — ${item.companyName}`,
-      `Generated ${new Date(item.createdAt).toLocaleDateString()}`,
-      buildReportSections(
-        item.iterations,
-        item.finalOutput,
-        mod?.outputLabel ?? 'Final Output'
-      ),
-      `${item.companyName}-${item.moduleId}-report.pdf`
-    );
+  const handleDownloadPdf = async () => {
+    setExportingPdf(true);
+    try {
+      const branding = getBranding();
+      await exportToPdf(
+        `${item.moduleTitle} — ${item.companyName}`,
+        `Generated ${new Date(item.createdAt).toLocaleDateString()}`,
+        buildReportSections(
+          item.iterations,
+          item.finalOutput,
+          mod?.outputLabel ?? 'Final Output'
+        ),
+        `${item.companyName}-${item.moduleId}-report.pdf`,
+        {
+          appName: branding.appName,
+          tagline: branding.tagline,
+        }
+      );
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   const toggleLoop = (num: number) => {
@@ -101,9 +113,13 @@ export default function HistoryDetailPage() {
           <Download className="h-4 w-4" />
           Download .md
         </button>
-        <button className="btn-secondary text-sm" onClick={handleDownloadPdf}>
+        <button
+          className="btn-secondary text-sm"
+          onClick={handleDownloadPdf}
+          disabled={exportingPdf}
+        >
           <FileDown className="h-4 w-4" />
-          Download PDF
+          {exportingPdf ? 'Generating PDF…' : 'Download PDF'}
         </button>
         <Link
           to={`/generate/${item.moduleId}`}

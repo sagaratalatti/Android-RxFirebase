@@ -1,22 +1,43 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Zap, LayoutDashboard, Settings, Menu, X, History } from 'lucide-react';
 import { useState } from 'react';
+import { useBranding } from './BrandingProvider';
 
 export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { branding } = useBranding();
   const isLanding = location.pathname === '/';
+
+  const accentStyle = { background: `linear-gradient(to bottom right, ${branding.accentColor}, #22d3ee)` };
 
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-surface/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-cyan-500">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
+            {branding.logoUrl ? (
+              <img
+                src={branding.logoUrl}
+                alt={branding.appName}
+                className="h-9 w-9 rounded-xl object-cover"
+              />
+            ) : (
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-xl"
+                style={accentStyle}
+              >
+                <Zap className="h-5 w-5 text-white" />
+              </div>
+            )}
             <span className="text-xl font-bold tracking-tight">
-              Loop<span className="text-brand-400">Forge</span>
+              {branding.appName === 'LoopForge' ? (
+                <>
+                  Loop<span style={{ color: branding.accentColor }}>Forge</span>
+                </>
+              ) : (
+                <span style={{ color: branding.accentColor }}>{branding.appName}</span>
+              )}
             </span>
           </Link>
 
@@ -84,7 +105,7 @@ export default function Layout() {
 
       <footer className="border-t border-slate-800 py-8">
         <div className="mx-auto max-w-7xl px-4 text-center text-sm text-slate-500 sm:px-6">
-          <p>LoopForge — Customised loop-prompt AI for startups</p>
+          <p>{branding.appName} — {branding.tagline}</p>
         </div>
       </footer>
     </div>

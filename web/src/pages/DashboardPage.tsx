@@ -1,11 +1,22 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ModuleCard } from '../components/ui';
 import { modules } from '../lib/modules';
-import { isAIConfigured } from '../lib/ai-service';
+import { isAIConfigured, checkServerAI, getAIMode, getAIStatusLabel } from '../lib/ai-service';
 import { Sparkles, Key } from 'lucide-react';
 
 export default function DashboardPage() {
-  const aiEnabled = isAIConfigured();
+  const [aiEnabled, setAiEnabled] = useState(isAIConfigured());
+  const [statusLabel, setStatusLabel] = useState(getAIStatusLabel());
+
+  useEffect(() => {
+    checkServerAI().then(() => {
+      setAiEnabled(isAIConfigured());
+      setStatusLabel(getAIStatusLabel());
+    });
+  }, []);
+
+  const mode = getAIMode();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -20,14 +31,28 @@ export default function DashboardPage() {
         <div className="mb-8 flex items-start gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
           <Key className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
           <div>
-            <p className="font-medium text-amber-200">Demo mode active</p>
+            <p className="font-medium text-amber-200">
+              {mode === 'server' ? 'Server AI not configured' : 'Demo mode active'}
+            </p>
             <p className="mt-1 text-sm text-amber-200/70">
-              Add your OpenAI API key in{' '}
-              <Link to="/settings" className="underline hover:text-amber-100">
-                Settings
-              </Link>{' '}
-              for live AI-generated content. Demo mode uses sample outputs based on your
-              startup profile.
+              {mode === 'server' ? (
+                <>
+                  Set <code className="text-amber-100">OPENAI_API_KEY</code> on your deployment, or
+                  switch mode in{' '}
+                  <Link to="/settings" className="underline hover:text-amber-100">
+                    Settings
+                  </Link>
+                  .
+                </>
+              ) : (
+                <>
+                  Enable live AI in{' '}
+                  <Link to="/settings" className="underline hover:text-amber-100">
+                    Settings
+                  </Link>{' '}
+                  — use a browser key or server proxy. Demo mode uses sample outputs.
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -36,9 +61,7 @@ export default function DashboardPage() {
       {aiEnabled && (
         <div className="mb-8 flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
           <Sparkles className="h-5 w-5 text-emerald-400" />
-          <p className="text-sm text-emerald-200">
-            Live AI enabled — your loop prompts will use GPT-4o-mini for generation.
-          </p>
+          <p className="text-sm text-emerald-200">{statusLabel}</p>
         </div>
       )}
 
@@ -61,19 +84,19 @@ export default function DashboardPage() {
         <ul className="space-y-3 text-sm text-slate-400">
           <li className="flex gap-2">
             <span className="text-brand-400">1.</span>
-            Fill in your startup profile completely — the more context, the better the loops.
+            Save startup profiles as workspaces in Settings for quick reuse.
           </li>
           <li className="flex gap-2">
             <span className="text-brand-400">2.</span>
-            Let each loop complete — later loops build on earlier analysis for depth.
+            Customise loop prompts per module to match your methodology.
           </li>
           <li className="flex gap-2">
             <span className="text-brand-400">3.</span>
-            Copy or export the final output and refine with your team.
+            Export backups to sync data across devices without an account.
           </li>
           <li className="flex gap-2">
             <span className="text-brand-400">4.</span>
-            Re-run modules as your startup evolves — profiles can be updated anytime.
+            Use server proxy mode in production to keep API keys secure.
           </li>
         </ul>
       </div>
