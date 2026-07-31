@@ -78,6 +78,8 @@ Pushes to `master` that change `web/` will auto-deploy.
 5. Deploy
 6. In the app: **Settings → AI Provider → Server Proxy**
 
+> **Note:** The Cloud Agent cannot complete Vercel OAuth on your behalf. Use Option A above — it takes about 2 minutes.
+
 ## 4. Deploy to Netlify
 
 1. Connect repository, set base directory to `web`
