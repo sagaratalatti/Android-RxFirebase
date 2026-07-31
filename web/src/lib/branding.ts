@@ -7,6 +7,9 @@ export const defaultBranding: BrandingConfig = {
   tagline: 'Customised loop-prompt AI for startups',
   accentColor: '#6366f1',
   logoUrl: '',
+  pwaShortName: 'LoopForge',
+  customDomain: '',
+  hidePoweredBy: false,
 };
 
 export function getBranding(): BrandingConfig {
@@ -36,4 +39,14 @@ export function applyBrandingToDocument(branding: BrandingConfig = getBranding()
   document.title = branding.appName.includes('—')
     ? branding.appName
     : `${branding.appName} — AI for Startups`;
+
+  const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if (!appleTitle) {
+    const meta = document.createElement('meta');
+    meta.name = 'apple-mobile-web-app-title';
+    meta.content = branding.pwaShortName || branding.appName;
+    document.head.appendChild(meta);
+  } else {
+    appleTitle.setAttribute('content', branding.pwaShortName || branding.appName);
+  }
 }

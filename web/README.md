@@ -82,9 +82,21 @@ For local server proxy testing, create `.env` from `.env.example` with your key.
 4. Enable Email auth in Supabase Authentication settings
 
 Features enabled with Supabase:
-- Sign up / sign in
+- Sign up / sign in with auto-sync on login
 - Cloud sync (upload/download all app data)
 - Shareable report links (`/share/:id`)
+- Team workspaces with invite codes and shared sync
+
+Run `supabase/schema-v2.sql` after the base schema for teams and billing tables.
+
+### Stripe billing (optional)
+
+1. Create products/prices in [Stripe Dashboard](https://dashboard.stripe.com)
+2. Set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `VITE_STRIPE_*_PRICE_ID` env vars
+3. Add webhook endpoint: `https://your-domain.com/api/stripe-webhook`
+4. Set `SUPABASE_SERVICE_ROLE_KEY` for webhook subscription updates
+
+Plans: **Free** (demo), **Pro** ($19/mo), **Team** ($49/mo with team workspaces)
 
 ## Tech Stack
 

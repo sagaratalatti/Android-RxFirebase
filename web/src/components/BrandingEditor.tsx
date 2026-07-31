@@ -9,7 +9,7 @@ export default function BrandingEditor() {
   const [branding, setBranding] = useState<BrandingConfig>(savedBranding);
   const [saved, setSaved] = useState(false);
 
-  const update = (field: keyof BrandingConfig, value: string) => {
+  const update = (field: keyof BrandingConfig, value: string | boolean) => {
     setBranding((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -126,6 +126,41 @@ export default function BrandingEditor() {
             />
           </div>
         </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="label-text" htmlFor="pwaShortName">
+              PWA Short Name
+            </label>
+            <input
+              id="pwaShortName"
+              className="input-field"
+              value={branding.pwaShortName}
+              onChange={(e) => update('pwaShortName', e.target.value)}
+              placeholder="LoopForge"
+            />
+          </div>
+          <div>
+            <label className="label-text" htmlFor="customDomain">
+              Custom Domain (for deploy docs)
+            </label>
+            <input
+              id="customDomain"
+              className="input-field"
+              value={branding.customDomain}
+              onChange={(e) => update('customDomain', e.target.value)}
+              placeholder="app.yourstartup.com"
+            />
+          </div>
+        </div>
+        <label className="flex cursor-pointer items-center gap-3 pt-2">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-brand-600"
+            checked={branding.hidePoweredBy}
+            onChange={(e) => update('hidePoweredBy', e.target.checked)}
+          />
+          <span className="text-sm text-slate-300">Hide default footer branding (white-label)</span>
+        </label>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">

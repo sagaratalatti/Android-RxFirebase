@@ -8,6 +8,7 @@ import HistoryPage from './pages/HistoryPage';
 import HistoryDetailPage from './pages/HistoryDetailPage';
 import AuthPage from './pages/AuthPage';
 import SharePage from './pages/SharePage';
+import PricingPage from './pages/PricingPage';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="history/:id" element={<HistoryDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="auth" element={<AuthPage />} />
+        <Route path="pricing" element={<PricingPage />} />
       </Route>
     </Routes>
   );

@@ -4,6 +4,8 @@ import BrandingEditor from '../components/BrandingEditor';
 import WorkspaceManager from '../components/WorkspaceManager';
 import DataBackupPanel from '../components/DataBackupPanel';
 import CloudSyncPanel from '../components/CloudSyncPanel';
+import TeamPanel from '../components/TeamPanel';
+import BillingPanel from '../components/BillingPanel';
 
 export default function SettingsPage() {
   return (
@@ -14,8 +16,10 @@ export default function SettingsPage() {
       </p>
 
       <div className="space-y-8">
+        <BillingPanel />
         <AISettingsPanel />
         <CloudSyncPanel />
+        <TeamPanel />
         <BrandingEditor />
         <WorkspaceManager />
         <PromptEditor />

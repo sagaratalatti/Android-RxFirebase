@@ -73,6 +73,9 @@ export interface BrandingConfig {
   tagline: string;
   accentColor: string;
   logoUrl: string;
+  pwaShortName: string;
+  customDomain: string;
+  hidePoweredBy: boolean;
 }
 
 export interface SavedWorkspace {
@@ -81,4 +84,28 @@ export interface SavedWorkspace {
   profile: StartupProfile;
   createdAt: number;
   updatedAt: number;
+}
+
+export type PlanId = 'free' | 'pro' | 'team';
+
+export interface Subscription {
+  user_id: string;
+  plan: PlanId;
+  status: string;
+  current_period_end?: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  owner_id: string;
+  invite_code: string;
+  created_at: string;
+}
+
+export interface TeamMember {
+  team_id: string;
+  user_id: string;
+  role: 'owner' | 'admin' | 'member';
+  joined_at: string;
 }

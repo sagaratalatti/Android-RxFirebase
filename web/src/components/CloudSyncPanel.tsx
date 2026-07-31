@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { exportAllData, applyBackupToLocalStorage } from '../lib/backup';
 import { pullFromCloud, pushToCloud } from '../lib/cloud-sync';
+import { isAutoSyncEnabled, setAutoSyncEnabled } from '../lib/sync-preferences';
 
 export default function CloudSyncPanel() {
   const { user, configured } = useAuth();
@@ -18,6 +19,7 @@ export default function CloudSyncPanel() {
     null
   );
   const [syncing, setSyncing] = useState<'push' | 'pull' | null>(null);
+  const [autoSync, setAutoSync] = useState(isAutoSyncEnabled());
 
   if (!configured) {
     return (
@@ -94,6 +96,24 @@ export default function CloudSyncPanel() {
           </p>
         </div>
       </div>
+
+      <label className="mb-4 flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700 bg-slate-900/30 px-4 py-3">
+        <input
+          type="checkbox"
+          className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-brand-600"
+          checked={autoSync}
+          onChange={(e) => {
+            setAutoSync(e.target.checked);
+            setAutoSyncEnabled(e.target.checked);
+          }}
+        />
+        <div>
+          <p className="text-sm font-medium text-slate-200">Auto-sync on sign in</p>
+          <p className="text-xs text-slate-500">
+            Merge cloud data and upload local changes when you sign in.
+          </p>
+        </div>
+      </label>
 
       <div className="flex flex-wrap gap-3">
         <button

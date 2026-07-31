@@ -49,6 +49,9 @@ export default function Layout() {
             <NavLink to="/history" icon={<History className="h-4 w-4" />}>
               History
             </NavLink>
+            <NavLink to="/pricing" icon={<Zap className="h-4 w-4" />}>
+              Pricing
+            </NavLink>
             <NavLink to="/settings" icon={<Settings className="h-4 w-4" />}>
               Settings
             </NavLink>
@@ -105,11 +108,18 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-800 py-8">
-        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-slate-500 sm:px-6">
-          <p>{branding.appName} — {branding.tagline}</p>
-        </div>
-      </footer>
+      {!branding.hidePoweredBy && (
+        <footer className="border-t border-slate-800 py-8">
+          <div className="mx-auto max-w-7xl px-4 text-center text-sm text-slate-500 sm:px-6">
+            <p>
+              {branding.appName} — {branding.tagline}
+            </p>
+            {branding.customDomain && (
+              <p className="mt-1 text-xs text-slate-600">{branding.customDomain}</p>
+            )}
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
