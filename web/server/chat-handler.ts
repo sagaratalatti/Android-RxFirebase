@@ -1,3 +1,8 @@
+import {
+  callChatCompletions,
+  resolveServerAIConfig,
+} from '../src/lib/ai-provider';
+
 export interface ChatRequest {
   prompt: string;
   systemContext: string;
@@ -14,11 +19,14 @@ export interface ChatError {
 
 export async function handleChatRequest(
   body: ChatRequest,
-  apiKey: string | undefined
+  env: Record<string, string | undefined>
 ): Promise<ChatSuccess | ChatError> {
-  if (!apiKey) {
+  const config = resolveServerAIConfig(env);
+
+  if (!config) {
     return {
-      error: 'Server AI not configured. Set OPENAI_API_KEY on your deployment.',
+      error:
+        'Server AI not configured. Set OPENAI_API_KEY or OPENROUTER_API_KEY on your deployment.',
       status: 503,
     };
   }
@@ -27,41 +35,39 @@ export async function handleChatRequest(
     return { error: 'Missing prompt or systemContext', status: 400 };
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
+  const result = await callChatCompletions(
+    config.provider,
+    config.apiKey,
+    {
+      model: config.model,
       messages: [
         { role: 'system', content: body.systemContext },
         { role: 'user', content: body.prompt },
       ],
       temperature: 0.7,
       max_tokens: 2000,
-    }),
-  });
+    },
+    env.APP_URL
+  );
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    return {
-      error:
-        (error as { error?: { message?: string } }).error?.message ||
-        `OpenAI API error: ${response.status}`,
-      status: response.status,
-    };
+  if ('error' in result) {
+    return { error: result.error, status: result.status };
   }
 
-  const data = (await response.json()) as {
-    choices: { message: { content: string } }[];
-  };
+  return { content: result.content };
+}
 
+export function getServerHealth(env: Record<string, string | undefined>) {
+  const config = resolveServerAIConfig(env);
   return {
-    content: data.choices[0]?.message?.content || 'No response generated.',
+    configured: Boolean(config),
+    provider: config?.provider ?? null,
+    model: config?.model ?? null,
+    mode: 'server' as const,
   };
 }
+
+export { resolveServerAIConfig };
 
 export function readJsonBody<T>(raw: string): T | null {
   try {

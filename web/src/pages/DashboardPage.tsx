@@ -44,7 +44,8 @@ export default function DashboardPage() {
             <p className="mt-1 text-sm text-amber-200/70">
               {mode === 'server' ? (
                 <>
-                  Set <code className="text-amber-100">OPENAI_API_KEY</code> on your deployment, or
+                  Set <code className="text-amber-100">OPENAI_API_KEY</code> or{' '}
+                  <code className="text-amber-100">OPENROUTER_API_KEY</code> on your deployment, or
                   switch mode in{' '}
                   <Link to="/settings" className="underline hover:text-amber-100">
                     Settings

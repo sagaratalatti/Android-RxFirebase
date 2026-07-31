@@ -5,7 +5,7 @@
 - [Vercel](https://vercel.com) or [Netlify](https://netlify.com) account
 - [Supabase](https://supabase.com) project (for auth, sync, teams)
 - [Stripe](https://stripe.com) account (for billing)
-- [OpenAI](https://platform.openai.com) API key
+- [OpenAI](https://platform.openai.com) or [OpenRouter](https://openrouter.ai) API key
 
 ## 1. Supabase Setup
 
@@ -37,7 +37,11 @@
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `OPENAI_API_KEY` | Yes | Server-side AI proxy |
+| `OPENAI_API_KEY` | For OpenAI | Server-side AI proxy (OpenAI direct) |
+| `OPENROUTER_API_KEY` | For OpenRouter | Server-side AI via OpenRouter |
+| `AI_PROVIDER` | Optional | `openai` or `openrouter` (auto-detected from keys) |
+| `AI_MODEL` | Optional | Model override (e.g. `openai/gpt-4o-mini` for OpenRouter) |
+| `APP_URL` | Optional | App URL for OpenRouter HTTP-Referer header |
 | `VITE_SUPABASE_URL` | For cloud | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | For cloud | Supabase anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | For billing | Service role (server only) |
@@ -92,7 +96,7 @@ Omit Stripe env vars to disable plan enforcement. Users get full access with any
 ```bash
 cd web
 cp .env.example .env
-# Set OPENAI_API_KEY only
+# Set OPENAI_API_KEY or OPENROUTER_API_KEY
 npm install && npm run build && npm run preview
 ```
 

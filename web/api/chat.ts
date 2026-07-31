@@ -8,7 +8,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const result = await handleChatRequest(
     req.body as { prompt: string; systemContext: string },
-    process.env.OPENAI_API_KEY
+    process.env as Record<string, string | undefined>
   );
 
   if ('error' in result) {
