@@ -1,0 +1,37 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/api/stripe-checkout"
+  to = "/.netlify/functions/stripe-checkout"
+  status = 200
+
+[[redirects]]
+  from = "/api/stripe-portal"
+  to = "/.netlify/functions/stripe-portal"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin-stats"
+  to = "/.netlify/functions/admin-stats"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
