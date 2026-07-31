@@ -10,7 +10,9 @@ A Progressive Web App for startups to generate business analysis, audits, GTM st
 - **Social Media** — Brand voice, content calendar, and ready-to-post content (3 loops)
 - **Loop-prompt engine** — Each AI loop builds on previous outputs for deeper analysis
 - **PWA** — Installable, works offline in demo mode, auto-updating service worker
-- **Live AI** — Connect your OpenAI API key for GPT-4o-mini powered generation
+- **Export** — Copy, download as Markdown, or export as PDF
+- **History** — Auto-saved generations stored locally (up to 50)
+- **Custom prompts** — Edit loop prompts per module in Settings
 
 ## Quick Start
 
@@ -28,6 +30,22 @@ Open http://localhost:5173
 npm run build
 npm run preview
 ```
+
+## Deploy
+
+### Vercel
+```bash
+cd web && npm run build
+# Deploy the web/ directory — Vercel auto-detects Vite
+```
+
+### Netlify
+```bash
+cd web && npm run build
+# Publish directory: dist
+```
+
+Both `vercel.json` and `netlify.toml` are included for SPA routing.
 
 ## AI Configuration
 

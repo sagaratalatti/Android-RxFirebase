@@ -47,3 +47,23 @@ export interface LoopPromptTemplate {
     buildPrompt: (profile: StartupProfile, previousOutputs: string[]) => string;
   }[];
 }
+
+export interface SerializableLoopConfig {
+  name: string;
+  systemContext: string;
+  promptTemplate: string;
+}
+
+export interface SavedGeneration {
+  id: string;
+  moduleId: ModuleId;
+  moduleTitle: string;
+  companyName: string;
+  profile: StartupProfile;
+  iterations: { loopNumber: number; name: string; response: string }[];
+  finalOutput: string;
+  usedLiveAI: boolean;
+  createdAt: number;
+}
+
+export type CustomPromptOverrides = Partial<Record<ModuleId, SerializableLoopConfig[]>>;

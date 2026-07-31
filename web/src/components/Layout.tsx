@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Zap, LayoutDashboard, Settings, Menu, X } from 'lucide-react';
+import { Zap, LayoutDashboard, Settings, Menu, X, History } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Layout() {
@@ -23,6 +23,9 @@ export default function Layout() {
           <nav className="hidden items-center gap-1 md:flex">
             <NavLink to="/dashboard" icon={<LayoutDashboard className="h-4 w-4" />}>
               Dashboard
+            </NavLink>
+            <NavLink to="/history" icon={<History className="h-4 w-4" />}>
+              History
             </NavLink>
             <NavLink to="/settings" icon={<Settings className="h-4 w-4" />}>
               Settings
@@ -55,6 +58,13 @@ export default function Layout() {
                 onClick={() => setMobileOpen(false)}
               >
                 Dashboard
+              </Link>
+              <Link
+                to="/history"
+                className="rounded-lg px-4 py-2.5 text-slate-300 hover:bg-slate-800"
+                onClick={() => setMobileOpen(false)}
+              >
+                History
               </Link>
               <Link
                 to="/settings"

@@ -6,15 +6,19 @@ import {
   Copy,
   Check,
   Download,
+  FileDown,
   ChevronDown,
   ChevronUp,
   Loader2,
+  History,
 } from 'lucide-react';
 import StartupForm, { emptyProfile, isProfileValid } from '../components/StartupForm';
 import { LoopProgress, MarkdownOutput } from '../components/ui';
 import { getModule } from '../lib/modules';
-import { promptTemplates } from '../lib/prompts';
+import { getTemplateForModule } from '../lib/prompts';
 import { runLoopEngine } from '../lib/loop-engine';
+import { saveToHistory } from '../lib/history';
+import { exportToPdf, buildReportSections } from '../lib/export';
 import type { ModuleId } from '../types';
 
 type Phase = 'form' | 'generating' | 'complete';
@@ -22,7 +26,7 @@ type Phase = 'form' | 'generating' | 'complete';
 export default function GeneratorPage() {
   const { moduleId } = useParams<{ moduleId: string }>();
   const mod = getModule(moduleId as ModuleId);
-  const template = moduleId ? promptTemplates[moduleId as ModuleId] : null;
+  const template = moduleId ? getTemplateForModule(moduleId as ModuleId) : null;
 
   const [profile, setProfile] = useState(emptyProfile);
   const [phase, setPhase] = useState<Phase>('form');
@@ -32,6 +36,7 @@ export default function GeneratorPage() {
     { loopNumber: number; name: string; response: string }[]
   >([]);
   const [finalOutput, setFinalOutput] = useState('');
+  const [savedId, setSavedId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [expandedLoops, setExpandedLoops] = useState<Set<number>>(new Set());
@@ -40,6 +45,8 @@ export default function GeneratorPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const loopCount = template.loops.length;
+
   const handleGenerate = useCallback(async () => {
     if (!isProfileValid(profile)) return;
 
@@ -47,6 +54,7 @@ export default function GeneratorPage() {
     setCurrentLoop(0);
     setIterations([]);
     setFinalOutput('');
+    setSavedId(null);
     setError('');
     setExpandedLoops(new Set());
 
@@ -56,43 +64,59 @@ export default function GeneratorPage() {
         setCurrentLoopName(name);
       });
 
-      setIterations(
-        result.iterations.map((it) => ({
-          loopNumber: it.loopNumber,
-          name: it.name,
-          response: it.response,
-        }))
-      );
+      const mappedIterations = result.iterations.map((it) => ({
+        loopNumber: it.loopNumber,
+        name: it.name,
+        response: it.response,
+      }));
+
+      setIterations(mappedIterations);
       setFinalOutput(result.finalOutput);
+
+      const saved = saveToHistory({
+        moduleId: mod.id,
+        moduleTitle: mod.title,
+        companyName: profile.companyName,
+        profile,
+        iterations: mappedIterations,
+        finalOutput: result.finalOutput,
+        usedLiveAI: result.usedLiveAI,
+      });
+      setSavedId(saved.id);
       setPhase('complete');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
       setPhase('form');
     }
-  }, [profile, template]);
+  }, [profile, template, mod]);
+
+  const fullMarkdown = iterations
+    .map((it) => `# Loop ${it.loopNumber}: ${it.name}\n\n${it.response}`)
+    .join('\n\n---\n\n');
 
   const handleCopy = async () => {
-    const fullOutput = iterations
-      .map((it) => `# Loop ${it.loopNumber}: ${it.name}\n\n${it.response}`)
-      .join('\n\n---\n\n');
-
-    await navigator.clipboard.writeText(fullOutput);
+    await navigator.clipboard.writeText(fullMarkdown);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = () => {
-    const fullOutput = iterations
-      .map((it) => `# Loop ${it.loopNumber}: ${it.name}\n\n${it.response}`)
-      .join('\n\n---\n\n');
-
-    const blob = new Blob([fullOutput], { type: 'text/markdown' });
+  const handleDownloadMd = () => {
+    const blob = new Blob([fullMarkdown], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${profile.companyName || 'startup'}-${mod.id}-report.md`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = () => {
+    exportToPdf(
+      `${mod.title} — ${profile.companyName}`,
+      `Generated ${new Date().toLocaleDateString()}`,
+      buildReportSections(iterations, finalOutput, mod.outputLabel),
+      `${profile.companyName || 'startup'}-${mod.id}-report.pdf`
+    );
   };
 
   const toggleLoop = (num: number) => {
@@ -123,7 +147,7 @@ export default function GeneratorPage() {
         <h1 className="mb-2 text-3xl font-bold">{mod.title}</h1>
         <p className="text-slate-400">{mod.description}</p>
         <p className="mt-2 text-sm text-slate-500">
-          {mod.loopCount} iterative AI loops → {mod.outputLabel}
+          {loopCount} iterative AI loops → {mod.outputLabel}
         </p>
       </div>
 
@@ -131,16 +155,14 @@ export default function GeneratorPage() {
         <div className="glass-card p-6 sm:p-8">
           <h2 className="mb-6 text-xl font-semibold">Your Startup Profile</h2>
           <StartupForm profile={profile} onChange={setProfile} />
-          {error && (
-            <p className="mt-4 text-sm text-red-400">{error}</p>
-          )}
+          {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
           <button
             className="btn-primary mt-8 w-full sm:w-auto"
             onClick={handleGenerate}
             disabled={!isProfileValid(profile)}
           >
             <Play className="h-5 w-5" />
-            Start {mod.loopCount} AI Loops
+            Start {loopCount} AI Loops
           </button>
         </div>
       )}
@@ -153,7 +175,7 @@ export default function GeneratorPage() {
           </div>
           <LoopProgress
             current={currentLoop}
-            total={mod.loopCount}
+            total={loopCount}
             currentName={currentLoopName}
           />
           <p className="mt-6 text-sm text-slate-500">
@@ -180,6 +202,16 @@ export default function GeneratorPage() {
 
       {phase === 'complete' && (
         <div className="space-y-6">
+          {savedId && (
+            <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              <History className="h-4 w-4 shrink-0" />
+              Saved to history.{' '}
+              <Link to={`/history/${savedId}`} className="underline hover:text-emerald-100">
+                View saved report
+              </Link>
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-3">
             <button className="btn-secondary text-sm" onClick={handleCopy}>
               {copied ? (
@@ -189,9 +221,13 @@ export default function GeneratorPage() {
               )}
               {copied ? 'Copied!' : 'Copy All'}
             </button>
-            <button className="btn-secondary text-sm" onClick={handleDownload}>
+            <button className="btn-secondary text-sm" onClick={handleDownloadMd}>
               <Download className="h-4 w-4" />
               Download .md
+            </button>
+            <button className="btn-secondary text-sm" onClick={handleDownloadPdf}>
+              <FileDown className="h-4 w-4" />
+              Download PDF
             </button>
             <button
               className="btn-primary text-sm"
@@ -199,6 +235,7 @@ export default function GeneratorPage() {
                 setPhase('form');
                 setIterations([]);
                 setFinalOutput('');
+                setSavedId(null);
               }}
             >
               <Play className="h-4 w-4" />

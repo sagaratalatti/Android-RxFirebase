@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Key, Eye, EyeOff, Trash2, Check, ExternalLink } from 'lucide-react';
 import { getStoredApiKey, setStoredApiKey, isAIConfigured } from '../lib/ai-service';
+import PromptEditor from '../components/PromptEditor';
 
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState(getStoredApiKey() || '');
@@ -87,6 +88,10 @@ export default function SettingsPage() {
           . Without a key, LoopForge runs in demo mode with sample outputs tailored to your
           startup profile.
         </p>
+      </div>
+
+      <div className="mt-8">
+        <PromptEditor />
       </div>
 
       <div className="mt-8 glass-card p-6 sm:p-8">
